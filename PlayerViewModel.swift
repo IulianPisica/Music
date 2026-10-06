@@ -1,4 +1,5 @@
 import AVFoundation
+import Combine
 import SwiftUI
 
 @MainActor
@@ -14,6 +15,7 @@ final class PlayerViewModel: ObservableObject {
 
     private let player = AVPlayer()
     private var endObserver: NSObjectProtocol?
+    private var statusCancellable: AnyCancellable?
 
     init() {
         try? AVAudioSession.sharedInstance().setCategory(.playback)
@@ -78,6 +80,13 @@ final class PlayerViewModel: ObservableObject {
         currentIndex = index
         let item = AVPlayerItem(url: url)
         player.replaceCurrentItem(with: item)
+        statusCancellable = item.publisher(for: \.status)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] st in
+                guard st == .failed else { return }
+                self?.isPlaying = false
+                self?.status = "Playback error: \(item.error?.localizedDescription ?? "unknown")"
+            }
         if let o = endObserver { NotificationCenter.default.removeObserver(o) }
         endObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main) { [weak self] _ in

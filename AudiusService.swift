@@ -40,6 +40,19 @@ enum AudiusService {
             return normal || swapped || titleOnly
         }
         guard let hit else { return nil }
-        return URL(string: "https://api.audius.co/v1/tracks/\(hit.id)/stream?app_name=\(app)")
+        return await streamURL(for: hit.id)
+    }
+
+    private struct StreamResponse: Decodable { let data: String }
+
+    /// Asks Audius for the direct audio URL (no redirect), so AVPlayer gets a plain https file.
+    private static func streamURL(for id: String) async -> URL? {
+        let base = "https://api.audius.co/v1/tracks/\(id)/stream?app_name=\(app)"
+        guard let u = URL(string: base + "&no_redirect=true"),
+              let (data, _) = try? await URLSession.shared.data(from: u),
+              let r = try? JSONDecoder().decode(StreamResponse.self, from: data),
+              let direct = URL(string: r.data)
+        else { return URL(string: base) }
+        return direct
     }
 }
