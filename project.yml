@@ -1,0 +1,24 @@
+name: FelisMusic
+options:
+  bundleIdPrefix: com.felis
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  FelisMusic:
+    type: application
+    platform: iOS
+    sources:
+      - FelisMusic
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Felis Music
+        UILaunchScreen: {}
+        UIBackgroundModes: [audio]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.felis.music
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
