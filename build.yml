@@ -16,8 +16,8 @@ jobs:
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         run: |
-          sed -i '' "s/YOUR_CLIENT_ID/$SPOTIFY_CLIENT_ID/" FelisMusic/Secrets.swift
-          sed -i '' "s/YOUR_CLIENT_SECRET/$SPOTIFY_CLIENT_SECRET/" FelisMusic/Secrets.swift
+          sed -i '' "s/YOUR_CLIENT_ID/$SPOTIFY_CLIENT_ID/" Secrets.swift
+          sed -i '' "s/YOUR_CLIENT_SECRET/$SPOTIFY_CLIENT_SECRET/" Secrets.swift
 
       - name: Install XcodeGen
         run: brew install xcodegen
