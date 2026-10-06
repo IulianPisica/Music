@@ -51,7 +51,19 @@ final class PlayerViewModel: ObservableObject {
     func load(_ text: String) async {
         isLoading = true
         defer { isLoading = false }
-        tracks = Self.parse(text)
+        let input = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if input.contains("spotify.com/playlist") {
+            status = "Reading playlist…"
+            do {
+                tracks = try await SpotifyEmbedService.fetchTracks(link: input)
+            } catch {
+                tracks = []
+                status = "Couldn't read that link. Make sure the playlist is public, or paste the songs as text."
+                return
+            }
+        } else {
+            tracks = Self.parse(text)
+        }
         currentIndex = nil
         for i in tracks.indices {
             status = "Matching \(i + 1) of \(tracks.count)…"

@@ -46,7 +46,7 @@ struct ContentView: View {
                         .padding(6)
                         .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
                     if songList.isEmpty {
-                        Text("Paste songs, one per line:\nLife Letters - Artist")
+                        Text("Paste a public Spotify playlist link,\nor songs one per line: Title - Artist")
                             .foregroundStyle(.gray)
                             .padding(14)
                             .allowsHitTesting(false)
