@@ -8,7 +8,9 @@ targets:
     type: application
     platform: iOS
     sources:
-      - FelisMusic
+      - path: .
+        includes:
+          - "*.swift"
     info:
       path: Info.plist
       properties:
