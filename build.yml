@@ -11,14 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inject Spotify keys
-        env:
-          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
-        run: |
-          sed -i '' "s/YOUR_CLIENT_ID/$SPOTIFY_CLIENT_ID/" Secrets.swift
-          sed -i '' "s/YOUR_CLIENT_SECRET/$SPOTIFY_CLIENT_SECRET/" Secrets.swift
-
       - name: Install XcodeGen
         run: brew install xcodegen
 

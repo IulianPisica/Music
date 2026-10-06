@@ -4,7 +4,8 @@ private let felisRed = Color(red: 0.90, green: 0.10, blue: 0.15)
 
 struct ContentView: View {
     @StateObject private var vm = PlayerViewModel()
-    @State private var link = ""
+    @State private var songList = ""
+    @State private var showInput = true
 
     var body: some View {
         ZStack {
@@ -19,28 +20,49 @@ struct ContentView: View {
         .tint(felisRed)
     }
 
-    // MARK: Header + playlist input
+    // MARK: Header + song list input
     private var header: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("FELIS")
-                .font(.system(size: 28, weight: .heavy))
-                .tracking(6)
-                .foregroundStyle(felisRed)
             HStack {
-                TextField("Spotify playlist link", text: $link)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .padding(10)
-                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                Text("FELIS")
+                    .font(.system(size: 28, weight: .heavy))
+                    .tracking(6)
+                    .foregroundStyle(felisRed)
+                Spacer()
+                if !vm.tracks.isEmpty {
+                    Button { withAnimation { showInput.toggle() } } label: {
+                        Image(systemName: showInput ? "chevron.up" : "text.badge.plus")
+                            .foregroundStyle(.gray)
+                    }
+                }
+            }
+            if showInput {
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $songList)
+                        .scrollContentBackground(.hidden)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .frame(height: 120)
+                        .padding(6)
+                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                    if songList.isEmpty {
+                        Text("Paste songs, one per line:\nLife Letters - Artist")
+                            .foregroundStyle(.gray)
+                            .padding(14)
+                            .allowsHitTesting(false)
+                    }
+                }
                 Button {
-                    Task { await vm.load(link) }
+                    showInput = false
+                    Task { await vm.load(songList) }
                 } label: {
                     Text("Load").bold()
-                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
                         .background(felisRed, in: RoundedRectangle(cornerRadius: 8))
                         .foregroundStyle(.white)
                 }
-                .disabled(vm.isLoading || link.isEmpty)
+                .disabled(vm.isLoading || songList.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             if !vm.status.isEmpty {
                 Text(vm.status).font(.caption).foregroundStyle(.gray)
@@ -60,7 +82,8 @@ struct ContentView: View {
                     }
                     Spacer()
                     if track.streamURL == nil {
-                        Text("unavailable").font(.caption2).foregroundStyle(.gray)
+                        Text(vm.isLoading ? "…" : "unavailable")
+                            .font(.caption2).foregroundStyle(.gray)
                     }
                 }
             }

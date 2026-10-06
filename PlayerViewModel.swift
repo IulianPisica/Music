@@ -32,21 +32,33 @@ final class PlayerViewModel: ObservableObject {
 
     var current: Track? { currentIndex.map { tracks[$0] } }
 
-    func load(_ link: String) async {
+    /// Parses lines like "Title - Artist" (also accepts – or — or a tab between them).
+    static func parse(_ text: String) -> [Track] {
+        text.split(whereSeparator: \.isNewline).compactMap { line in
+            let s = String(line).trimmingCharacters(in: .whitespaces)
+            guard !s.isEmpty else { return nil }
+            for sep in [" - ", " – ", " — ", "\t"] {
+                let parts = s.components(separatedBy: sep)
+                if parts.count >= 2 {
+                    return Track(title: parts[0].trimmingCharacters(in: .whitespaces),
+                                 artist: parts[1].trimmingCharacters(in: .whitespaces))
+                }
+            }
+            return Track(title: s, artist: "")
+        }
+    }
+
+    func load(_ text: String) async {
         isLoading = true
         defer { isLoading = false }
-        do {
-            status = "Reading playlist…"
-            tracks = try await SpotifyService.fetchTracks(link: link)
-            for i in tracks.indices {
-                status = "Matching \(i + 1) of \(tracks.count)…"
-                tracks[i].streamURL = await AudiusService.match(tracks[i])
-            }
-            let found = tracks.filter { $0.streamURL != nil }.count
-            status = "\(found) of \(tracks.count) tracks found"
-        } catch {
-            status = "Error: \(error.localizedDescription)"
+        tracks = Self.parse(text)
+        currentIndex = nil
+        for i in tracks.indices {
+            status = "Matching \(i + 1) of \(tracks.count)…"
+            tracks[i].streamURL = await AudiusService.match(tracks[i])
         }
+        let found = tracks.filter { $0.streamURL != nil }.count
+        status = "\(found) of \(tracks.count) songs found"
     }
 
     func play(_ index: Int) {

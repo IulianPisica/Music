@@ -1,13 +1,12 @@
 import Foundation
 
-/// Matches a Spotify track against Audius (artist-uploaded, free, no ads).
+/// Matches a song against Audius (artist-uploaded, free, no ads).
 enum AudiusService {
     private struct Response: Decodable {
         struct Item: Decodable {
             struct User: Decodable { let name: String }
             let id: String
             let title: String
-            let duration: Int
             let user: User
         }
         let data: [Item]
@@ -26,12 +25,19 @@ enum AudiusService {
               let res = try? JSONDecoder().decode(Response.self, from: data)
         else { return nil }
 
-        let wanted = track.artist.lowercased()
-        let hit = res.data.first { t in
-            let name = t.user.name.lowercased()
-            let sameLength = abs(Double(t.duration) - track.duration) <= 5
-            let sameArtist = name.contains(wanted) || wanted.contains(name)
-            return sameLength && sameArtist
+        let t = track.title.lowercased()
+        let a = track.artist.lowercased()
+        func like(_ x: String, _ y: String) -> Bool {
+            !x.isEmpty && !y.isEmpty && (x.contains(y) || y.contains(x))
+        }
+
+        let hit = res.data.first { item in
+            let name = item.user.name.lowercased()
+            let title = item.title.lowercased()
+            let normal = like(name, a) && like(title, t)
+            let swapped = like(name, t) && like(title, a)      // "Artist - Title" lists
+            let titleOnly = a.isEmpty && like(title, t)         // line had no artist
+            return normal || swapped || titleOnly
         }
         guard let hit else { return nil }
         return URL(string: "https://api.audius.co/v1/tracks/\(hit.id)/stream?app_name=\(app)")
